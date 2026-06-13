@@ -252,7 +252,7 @@ function getOpenCodeModelStatePath(): string {
   }
 
   const homeDir = process.env.HOME || process.env.USERPROFILE || "";
-  return path.join(homeDir, ".local"share"mimocode", "model.json");
+  return path.join(homeDir, ".local", "share", "mimocode", "model.json");
 }
 
 /**

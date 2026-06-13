@@ -79,7 +79,7 @@ export async function opencodeStartCommand(ctx: CommandContext<Context>) {
   try {
     const localTarget = resolveLocalOpencodeTarget(config.opencode.apiUrl);
     if (!localTarget) {
-      await ctx.reply(t("opencode_start.remote_configured"));
+      await ctx.reply(t("mimocode_start.remote_configured"));
       return;
     }
 
@@ -90,7 +90,7 @@ export async function opencodeStartCommand(ctx: CommandContext<Context>) {
 
       if (data?.healthy) {
         await ctx.reply(
-          t("opencode_start.already_running", { version: data.version || t("common.unknown") }),
+          t("mimocode_start.already_running", { version: data.version || t("common.unknown") }),
         );
         await opencodeReadyLifecycle.notifyReady("opencode_start_already_running");
         return;
@@ -99,7 +99,7 @@ export async function opencodeStartCommand(ctx: CommandContext<Context>) {
       // Server not accessible, continue with start.
     }
 
-    const statusMessage = await ctx.reply(t("opencode_start.starting"));
+    const statusMessage = await ctx.reply(t("mimocode_start.starting"));
 
     const childProcess = startLocalOpencodeServer(localTarget);
 
@@ -113,7 +113,7 @@ export async function opencodeStartCommand(ctx: CommandContext<Context>) {
         api: ctx.api,
         chatId: ctx.chat.id,
         messageId: statusMessage.message_id,
-        text: t("opencode_start.start_error", { error: t("common.unknown_error") }),
+        text: t("mimocode_start.start_error", { error: t("common.unknown_error") }),
       });
       return;
     }
@@ -128,7 +128,7 @@ export async function opencodeStartCommand(ctx: CommandContext<Context>) {
         api: ctx.api,
         chatId: ctx.chat.id,
         messageId: statusMessage.message_id,
-        text: t("opencode_start.started_not_ready", {
+        text: t("mimocode_start.started_not_ready", {
           pid,
         }),
       });
@@ -140,7 +140,7 @@ export async function opencodeStartCommand(ctx: CommandContext<Context>) {
       api: ctx.api,
       chatId: ctx.chat.id,
       messageId: statusMessage.message_id,
-      text: t("opencode_start.success", {
+      text: t("mimocode_start.success", {
         pid,
         version: health?.version || t("common.unknown"),
       }),
@@ -150,6 +150,6 @@ export async function opencodeStartCommand(ctx: CommandContext<Context>) {
     await opencodeReadyLifecycle.notifyReady("opencode_start_success");
   } catch (err) {
     logger.error("[Bot] Error in /opencode-start command:", err);
-    await ctx.reply(t("opencode_start.error"));
+    await ctx.reply(t("mimocode_start.error"));
   }
 }

@@ -18,28 +18,28 @@ export async function opencodeStopCommand(ctx: CommandContext<Context>) {
   try {
     const localTarget = resolveLocalOpencodeTarget(config.opencode.apiUrl);
     if (!localTarget) {
-      await ctx.reply(t("opencode_stop.remote_configured"));
+      await ctx.reply(t("mimocode_stop.remote_configured"));
       return;
     }
 
     try {
       const { data, error } = await opencodeClient.global.health();
       if (error || !data?.healthy) {
-        await ctx.reply(t("opencode_stop.not_running"));
+        await ctx.reply(t("mimocode_stop.not_running"));
         return;
       }
     } catch {
-      await ctx.reply(t("opencode_stop.not_running"));
+      await ctx.reply(t("mimocode_stop.not_running"));
       return;
     }
 
     const pid = await findServerPid(localTarget.port);
     if (!pid) {
-      await ctx.reply(t("opencode_stop.pid_not_found", { port: localTarget.port }));
+      await ctx.reply(t("mimocode_stop.pid_not_found", { port: localTarget.port }));
       return;
     }
 
-    const statusMessage = await ctx.reply(t("opencode_stop.stopping", { pid }));
+    const statusMessage = await ctx.reply(t("mimocode_stop.stopping", { pid }));
 
     const stopped = await killServerProcess(pid, 5000);
     if (!stopped) {
@@ -47,7 +47,7 @@ export async function opencodeStopCommand(ctx: CommandContext<Context>) {
         api: ctx.api,
         chatId: ctx.chat.id,
         messageId: statusMessage.message_id,
-        text: t("opencode_stop.stop_error", { error: t("common.unknown_error") }),
+        text: t("mimocode_stop.stop_error", { error: t("common.unknown_error") }),
       });
       return;
     }
@@ -59,7 +59,7 @@ export async function opencodeStopCommand(ctx: CommandContext<Context>) {
           api: ctx.api,
           chatId: ctx.chat.id,
           messageId: statusMessage.message_id,
-          text: t("opencode_stop.stop_error", { error: t("opencode_stop.still_running") }),
+          text: t("mimocode_stop.stop_error", { error: t("mimocode_stop.still_running") }),
         });
         return;
       }
@@ -71,12 +71,12 @@ export async function opencodeStopCommand(ctx: CommandContext<Context>) {
       api: ctx.api,
       chatId: ctx.chat.id,
       messageId: statusMessage.message_id,
-      text: t("opencode_stop.success"),
+      text: t("mimocode_stop.success"),
     });
 
     logger.info(`[Bot] MiMoCode server stopped successfully, PID=${pid}, port=${localTarget.port}`);
   } catch (err) {
     logger.error("[Bot] Error in /opencode-stop command:", err);
-    await ctx.reply(t("opencode_stop.error"));
+    await ctx.reply(t("mimocode_stop.error"));
   }
 }

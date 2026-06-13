@@ -64,8 +64,8 @@ export function registerCommandRouter(bot: Bot<Context>, deps: CommandRouterDeps
   bot.command("help", helpCommand);
   bot.command("status", statusCommand);
   bot.command("tts", ttsCommand);
-  bot.command("opencode_start", opencodeStartCommand);
-  bot.command("opencode_stop", opencodeStopCommand);
+  bot.command("mimocode_start", opencodeStartCommand);
+  bot.command("mimocode_stop", opencodeStopCommand);
   bot.command("projects", projectsCommand);
   bot.command("worktree", worktreeCommand);
   bot.command("open", openCommand);

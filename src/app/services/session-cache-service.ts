@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import path from "node:path";
-import Database from "better-sqlite3";
+import initSqlJs from "sql.js";
 import { opencodeClient } from "../../opencode/client.js";
 import { getSessionDirectoryCache, setSessionDirectoryCache } from "../stores/settings-store.js";
 import { logger } from "../../utils/logger.js";
@@ -324,13 +324,13 @@ function getStorageRootCandidates(pathInfo: { home?: string; state?: string }): 
   const candidates = new Set<string>();
 
   if (pathInfo.home) {
-    candidates.add(path.join(pathInfo.home, ".local"share"mimocode"));
+    candidates.add(path.join(pathInfo.home, ".local", "share", "mimocode"));
   }
 
   if (pathInfo.state) {
     const normalizedState = pathInfo.state.replace(/[\\/]+$/, "");
     const lowerState = normalizedState.toLowerCase();
-    const marker = `${path.sep}state"mimocode`;
+    const marker = `${path.sep}state${path.sep}mimocode`;
     const lowerMarker = marker.toLowerCase();
 
     if (lowerState.endsWith(lowerMarker)) {
@@ -378,23 +378,27 @@ async function querySessionDirectoriesFromSqlite(
   dbPath: string,
 ): Promise<CachedSessionDirectory[] | null> {
   try {
-    const db = new Database(dbPath, {
-      readonly: true,
-      fileMustExist: true,
-    });
+    const fs = await import("node:fs/promises");
+    const fileBuffer = await fs.readFile(dbPath);
+    const SQL = await initSqlJs();
+    const db = new SQL.Database(fileBuffer);
 
     try {
-      const rows = db
-        .prepare(
-          `
-            SELECT directory, MAX(time_updated) AS updated
-            FROM session
-            GROUP BY directory
-            ORDER BY updated DESC
-            LIMIT ?
-          `,
-        )
-        .all(SQLITE_FALLBACK_QUERY_LIMIT) as Array<{ directory?: string; updated?: number | null }>;
+      const stmt = db.prepare(`
+        SELECT directory, MAX(time_updated) AS updated
+        FROM session
+        GROUP BY directory
+        ORDER BY updated DESC
+        LIMIT ?
+      `);
+      stmt.bind([SQLITE_FALLBACK_QUERY_LIMIT]);
+
+      const rows: Array<{ directory?: string; updated?: number | null }> = [];
+      while (stmt.step()) {
+        const row = stmt.getAsObject();
+        rows.push(row as { directory?: string; updated?: number | null });
+      }
+      stmt.free();
 
       return rows
         .filter(
