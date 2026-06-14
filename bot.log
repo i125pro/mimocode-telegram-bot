@@ -1,0 +1,12 @@
+[2026-06-14T02:28:52.682Z] [INFO] Starting MiMoCode Telegram Bot v0.1.0...
+[2026-06-14T02:28:52.687Z] [INFO] Config loaded from /data/data/com.termux/files/home/opencode-telegram-bot/.env
+[2026-06-14T02:28:52.687Z] [INFO] Logs are written to /data/data/com.termux/files/home/opencode-telegram-bot/logs/bot-2026-06-14_02-28-50_23413.log
+[2026-06-14T02:28:52.687Z] [INFO] Allowed User ID: 7997178008
+[2026-06-14T02:28:52.864Z] [WARN] [MiMoCodeReady] MiMoCode server is not running: reason=startup
+[2026-06-14T02:28:56.338Z] [WARN] [Bot] Could not clear global commands: GrammyError: Call to 'setMyCommands' failed! (404: Not Found)
+    at toGrammyError (/data/data/com.termux/files/home/opencode-telegram-bot/node_modules/grammy/out/core/error.js:47:12)
+    at ApiClient.callApi (/data/data/com.termux/files/home/opencode-telegram-bot/node_modules/grammy/out/core/client.js:97:48)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async Promise.all (index 1)
+    at async task (file:///data/data/com.termux/files/home/opencode-telegram-bot/dist/bot/index.js:103:17)
+Failed to start bot: Call to 'getWebhookInfo' failed! (404: Not Found)

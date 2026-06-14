@@ -59,26 +59,59 @@ export async function ensureCommandsInitialized(ctx: Context, next: NextFunction
   await next();
 }
 
+function isGroupChat(ctx: Context): boolean {
+  return ctx.chat?.type === "group" || ctx.chat?.type === "supergroup";
+}
+
+function isBotMentioned(ctx: Context): boolean {
+  const botInfo = ctx.me;
+  if (!botInfo?.username) {
+    return false;
+  }
+
+  const text = ctx.message?.text || ctx.message?.caption || "";
+  const mentionEntity = `@${botInfo.username.toLowerCase()}`;
+
+  if (text.toLowerCase().includes(mentionEntity)) {
+    return true;
+  }
+
+  const entities = ctx.message?.entities || ctx.message?.caption_entities || [];
+  return entities.some(
+    (e) =>
+      (e.type === "mention" && text.substring(e.offset, e.offset + e.length).toLowerCase() === mentionEntity) ||
+      (e.type === "text_mention" && e.user?.id === botInfo.id),
+  );
+}
+
+function groupCommandGuard(ctx: Context, next: () => Promise<void>): Promise<void> {
+  if (isGroupChat(ctx) && !isBotMentioned(ctx)) {
+    logger.debug(`[Bot] Ignoring group command without @mention: chatId=${ctx.chat?.id}`);
+    return Promise.resolve();
+  }
+  return next();
+}
+
 export function registerCommandRouter(bot: Bot<Context>, deps: CommandRouterDeps): void {
-  bot.command("start", startCommand);
-  bot.command("help", helpCommand);
-  bot.command("status", statusCommand);
-  bot.command("tts", ttsCommand);
-  bot.command("mimocode_start", opencodeStartCommand);
-  bot.command("mimocode_stop", opencodeStopCommand);
-  bot.command("projects", projectsCommand);
-  bot.command("worktree", worktreeCommand);
-  bot.command("open", openCommand);
-  bot.command("ls", lsCommand);
-  bot.command("sessions", sessionsCommand);
-  bot.command("messages", messagesCommand);
-  bot.command("new", (ctx) => newCommand(ctx, { bot, ensureEventSubscription: deps.ensureEventSubscription }));
-  bot.command("abort", abortCommand);
-  bot.command("detach", detachCommand);
-  bot.command("task", taskCommand);
-  bot.command("tasklist", taskListCommand);
-  bot.command("rename", renameCommand);
-  bot.command("commands", commandsCommand);
-  bot.command("skills", skillsCommand);
-  bot.command("mcps", mcpsCommand);
+  bot.command("start", groupCommandGuard, startCommand);
+  bot.command("help", groupCommandGuard, helpCommand);
+  bot.command("status", groupCommandGuard, statusCommand);
+  bot.command("tts", groupCommandGuard, ttsCommand);
+  bot.command("mimocode_start", groupCommandGuard, opencodeStartCommand);
+  bot.command("mimocode_stop", groupCommandGuard, opencodeStopCommand);
+  bot.command("projects", groupCommandGuard, projectsCommand);
+  bot.command("worktree", groupCommandGuard, worktreeCommand);
+  bot.command("open", groupCommandGuard, openCommand);
+  bot.command("ls", groupCommandGuard, lsCommand);
+  bot.command("sessions", groupCommandGuard, sessionsCommand);
+  bot.command("messages", groupCommandGuard, messagesCommand);
+  bot.command("new", groupCommandGuard, (ctx) => newCommand(ctx, { bot, ensureEventSubscription: deps.ensureEventSubscription }));
+  bot.command("abort", groupCommandGuard, abortCommand);
+  bot.command("detach", groupCommandGuard, detachCommand);
+  bot.command("task", groupCommandGuard, taskCommand);
+  bot.command("tasklist", groupCommandGuard, taskListCommand);
+  bot.command("rename", groupCommandGuard, renameCommand);
+  bot.command("commands", groupCommandGuard, commandsCommand);
+  bot.command("skills", groupCommandGuard, skillsCommand);
+  bot.command("mcps", groupCommandGuard, mcpsCommand);
 }

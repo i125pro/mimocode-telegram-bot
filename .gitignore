@@ -1,37 +1,12 @@
-# Node
-node_modules/
-dist/
-coverage/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Environment
+# Environment variables
 .env
 
-# OS
-.DS_Store
-Thumbs.db
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Local AI tooling
-.claude/
-.kilocode/
-.opencode/
-opencode.json
-
-# Project specific
+# Build output
+dist/
 logs/
-run/
+
+# Dependencies
+node_modules/
+
+# Settings
 settings.json
-.tmp/
-
-# Packaging artifacts
-*.tgz
-
-.boardown

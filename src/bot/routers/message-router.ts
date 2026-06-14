@@ -26,6 +26,31 @@ import { handleCatalogTextArguments } from "../handlers/text-message-handler.js"
 import { handleVoiceMessage } from "../handlers/voice-handler.js";
 import { unknownCommandMiddleware } from "../middleware/unknown-command.js";
 
+function isGroupChat(ctx: Context): boolean {
+  return ctx.chat?.type === "group" || ctx.chat?.type === "supergroup";
+}
+
+function isBotMentioned(ctx: Context): boolean {
+  const botInfo = ctx.me;
+  if (!botInfo?.username) {
+    return false;
+  }
+
+  const text = ctx.message?.text || ctx.message?.caption || "";
+  const mentionEntity = `@${botInfo.username.toLowerCase()}`;
+
+  if (text.toLowerCase().includes(mentionEntity)) {
+    return true;
+  }
+
+  const entities = ctx.message?.entities || ctx.message?.caption_entities || [];
+  return entities.some(
+    (e) =>
+      (e.type === "mention" && text.substring(e.offset, e.offset + e.length).toLowerCase() === mentionEntity) ||
+      (e.type === "text_mention" && e.user?.id === botInfo.id),
+  );
+}
+
 interface MessageRouterDeps {
   ensureEventSubscription: (directory: string) => Promise<void>;
   setTelegramContext: (bot: Bot<Context>, chatId: number) => void;
@@ -44,7 +69,16 @@ async function blockMenuWhileInteractionActive(ctx: Context): Promise<boolean> {
   return true;
 }
 
+function groupMentionGuard(ctx: Context, next: () => Promise<void>): Promise<void> {
+  if (isGroupChat(ctx) && !isBotMentioned(ctx)) {
+    logger.debug(`[Bot] Ignoring group message without @mention: chatId=${ctx.chat?.id}`);
+    return Promise.resolve();
+  }
+  return next();
+}
+
 export function registerMessageRouter(bot: Bot<Context>, deps: MessageRouterDeps): void {
+  bot.on("message", groupMentionGuard);
   bot.on("message:text", unknownCommandMiddleware);
 
   bot.hears(AGENT_MODE_BUTTON_TEXT_PATTERN, async (ctx) => {
